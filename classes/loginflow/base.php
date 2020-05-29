@@ -30,6 +30,8 @@ class base {
     /** @var \auth_oidc\httpclientinterface An HTTP client to use. */
     protected $httpclient;
 
+    protected $claimMappings;
+
     public function __construct() {
         $default = [
             'opname' => get_string('pluginname', 'auth_oidc')
@@ -47,6 +49,19 @@ class base {
             'field_updatelocal_email' => 'onlogin',
             'field_lock_email' => 'unlocked',
         ];
+
+        $claimMappingStrs = explode("\n", $storedconfig['claimmappings']);
+        $claimMappings = [];
+        foreach ($claimMappingStrs as $claimMappingStr) {
+            $parsedClaimMapping = explode(',', $claimMappingStr);
+            $claimName = trim($parsedClaimMapping[0]);
+            $fieldName = trim($parsedClaimMapping[1]);
+            $claimMappings[$claimName] = $fieldName;
+            $forcedconfig['field_updatelocal_' . $fieldName] = 'onlogin';
+            $forcedconfig['field_lock_' . $fieldName] = 'unlocked';
+        }
+
+        $this->claimMappings = $claimMappings;
 
         $this->config = (object)array_merge($default, $storedconfig, $forcedconfig);
     }
@@ -131,6 +146,13 @@ class base {
                 if (!empty($aademailvalidateresult)) {
                     $userinfo['email'] = $aademail;
                 }
+            }
+        }
+        
+        foreach ($this->claimMappings as $claimName => $fieldName) {
+            $claimVal = $idtoken->claim($claimName);
+            if (!empty($claimVal)) {
+                $userinfo[$fieldName] = $claimVal;
             }
         }
 
@@ -496,5 +518,9 @@ class base {
         $tokenrec->refreshtoken = !empty($tokenparams['refresh_token']) ? $tokenparams['refresh_token'] : ''; // TBD?
         $tokenrec->idtoken = $tokenparams['id_token'];
         $DB->update_record('auth_oidc_token', $tokenrec);
+    }
+
+    protected function getClaimMappings() {
+
     }
 }

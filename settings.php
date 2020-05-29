@@ -85,6 +85,8 @@ $configdesc = new lang_string('cfg_userrestrictions_desc', 'auth_oidc');
 $configdefault = '';
 $settings->add(new admin_setting_configtextarea('auth_oidc/userrestrictions', $configkey, $configdesc, $configdefault, PARAM_TEXT));
 
+$settings->add(new admin_setting_configtextarea('auth_oidc/claimmappings', 'ID Token Claim Mappings', 'Map ID token claims to user profile fields<br /><br /><strong>How to use:</strong><br />Enter one `claimName, profileField` per line', '', PARAM_TEXT));
+
 $label = new lang_string('cfg_debugmode_key', 'auth_oidc');
 $desc = new lang_string('cfg_debugmode_desc', 'auth_oidc');
 $settings->add(new \admin_setting_configcheckbox('auth_oidc/debugmode', $label, $desc, '0'));
